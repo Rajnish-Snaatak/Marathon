@@ -15,6 +15,7 @@ export interface Participant {
   tshirt_size: string | null
   status: ParticipantStatus
   bib_number: number | null
+  distance: string | null
   approved_at: string | null
   confirmed_at: string | null
   certified_at: string | null

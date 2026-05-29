@@ -55,6 +55,9 @@ export default function Certificate({ participant, onClose }: CertificateProps) 
           <p className="text-4xl font-bold text-gray-800 leading-tight">{participant.name}</p>
           <p className="text-gray-400 text-sm mt-2">
             BIB <span className="font-bold text-gray-600 font-mono">#{participant.bib_number}</span>
+            {participant.distance && (
+              <span className="ml-3 text-gray-400">· {participant.distance}</span>
+            )}
           </p>
         </div>
         <p className="text-gray-500 text-sm">successfully completed the race on</p>

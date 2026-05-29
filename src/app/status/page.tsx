@@ -225,6 +225,11 @@ export default function StatusPage() {
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">{participant.name}</h2>
                   <p className="text-sm text-gray-400">{participant.email}</p>
+                  {participant.distance && (
+                    <span className="inline-block mt-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                      {participant.distance}
+                    </span>
+                  )}
                 </div>
                 {/* BIB badge — visible once approved */}
                 {participant.bib_number && STATUS_INDEX[participant.status] >= 1 && (

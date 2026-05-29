@@ -5,8 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 const TSHIRT_SIZES = ['S', 'M', 'L', 'XL'] as const
+const DISTANCES = ['5K', '10K', 'Half Marathon', 'Full Marathon'] as const
 
-const EMPTY_FORM = { name: '', email: '', phone: '', age: '', tshirt_size: 'M' }
+const EMPTY_FORM = { name: '', email: '', phone: '', age: '', tshirt_size: 'M', distance: '5K' }
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -27,6 +28,7 @@ export default function RegisterPage() {
         phone: form.phone.trim() || null,
         age: form.age ? parseInt(form.age) : null,
         tshirt_size: form.tshirt_size,
+        distance: form.distance,
         status: 'registered',
       })
 
@@ -99,6 +101,24 @@ export default function RegisterPage() {
               placeholder="+1 555 0100"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Distance <span className="text-red-500">*</span>
+            </label>
+            <select
+              data-testid="register-distance-select"
+              name="distance"
+              required
+              value={form.distance}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {DISTANCES.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

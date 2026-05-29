@@ -68,6 +68,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">BIB #</th>
+              <th className="px-4 py-3 text-left">Distance</th>
               <th className="px-4 py-3 text-left">T-Shirt</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Registered</th>
@@ -77,7 +78,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
           <tbody className="divide-y divide-gray-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
+                <td colSpan={8} className="px-4 py-10 text-center text-gray-400">
                   {search ? 'No participants match your search.' : 'No participants yet.'}
                 </td>
               </tr>
@@ -89,6 +90,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
                   <td className="px-4 py-3 font-mono text-gray-700 font-semibold">
                     {p.bib_number ?? <span className="text-gray-300">—</span>}
                   </td>
+                  <td className="px-4 py-3 text-gray-600 text-xs">{p.distance ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{p.tshirt_size ?? '—'}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status} />
