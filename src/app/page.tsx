@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const RACE_NAME     = process.env.NEXT_PUBLIC_RACE_NAME ?? 'City Marathon 2026'
-const RACE_DATE     = 'Sunday, April 6, 2026'
+const RACE_DATE     = 'Monday, June 1, 2026'
 const RACE_TIME     = 'Start: 6:00 AM IST'
 const RACE_LOCATION = 'Nehru Stadium, New Delhi, India'
 
