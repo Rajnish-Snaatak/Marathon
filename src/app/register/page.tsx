@@ -146,9 +146,9 @@ export default function RegisterPage() {
         </form>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          Already approved?{' '}
-          <a href="/confirm" className="text-indigo-500 hover:underline">
-            Confirm your spot →
+          Already registered?{' '}
+          <a href="/status" className="text-indigo-500 hover:underline">
+            Track your journey →
           </a>
         </p>
         <p className="text-center text-xs text-gray-400 mt-2">
