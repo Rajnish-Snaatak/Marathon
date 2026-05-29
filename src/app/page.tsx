@@ -51,7 +51,7 @@ const FAQS = [
   },
   {
     q: 'Can I transfer or cancel my registration?',
-    a: 'Transfers to another participant are allowed up to May 25, 2026. Registrations are non-refundable.',
+    a: 'Transfers to another participant are allowed up to May 31, 2026. Registrations are non-refundable.',
   },
   {
     q: 'What should I bring on race day?',
