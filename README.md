@@ -8,6 +8,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
+### 🌐 [Live Demo → marathon-app-weld.vercel.app](https://marathon-app-weld.vercel.app)
+
 **A full-stack Marathon Management MVP built in a 1-day hackathon.**  
 Manages the complete participant journey from registration to certified finisher — with a live race-day station and downloadable certificate.
 
