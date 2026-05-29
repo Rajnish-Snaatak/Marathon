@@ -30,13 +30,17 @@ export default function ParticipantTable({ participants }: { participants: Parti
 
       const { error } = await supabase
         .from('participants')
-        .update({ status: 'confirmed', bib_number: newBib })
+        .update({
+          status: 'approved',
+          bib_number: newBib,
+          approved_at: new Date().toISOString(),
+        })
         .eq('id', participant.id)
 
       if (error) {
         toast.error('Failed to assign BIB: ' + error.message)
       } else {
-        toast.success(`BIB #${newBib} assigned — ${participant.name} confirmed`)
+        toast.success(`BIB #${newBib} assigned — ${participant.name} approved. Awaiting participant confirmation.`)
         router.refresh()
       }
     } finally {
@@ -100,8 +104,13 @@ export default function ParticipantTable({ participants }: { participants: Parti
                         disabled={loadingId === p.id}
                         className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
                       >
-                        {loadingId === p.id ? 'Assigning…' : 'Approve + BIB'}
+                        {loadingId === p.id ? 'Approving…' : 'Approve + BIB'}
                       </button>
+                    )}
+                    {p.status === 'approved' && (
+                      <span className="text-xs text-orange-500 italic">
+                        Awaiting confirmation
+                      </span>
                     )}
                   </td>
                 </tr>

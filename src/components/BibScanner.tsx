@@ -44,6 +44,12 @@ export default function BibScanner() {
         return
       }
 
+      if (participant.status === 'approved') {
+        toast.error(`BIB #${bibNum}: ${participant.name} is approved but has not confirmed yet. Ask them to visit /confirm.`)
+        resetInput()
+        return
+      }
+
       if (participant.status === 'confirmed') {
         const { error: updateError } = await supabase
           .from('participants')
@@ -117,7 +123,11 @@ export default function BibScanner() {
           {loading ? 'Processing…' : 'Confirm BIB'}
         </button>
 
-        <div className="mt-5 grid grid-cols-2 gap-2 text-xs text-center text-gray-400">
+        <div className="mt-5 grid grid-cols-3 gap-2 text-xs text-center text-gray-400">
+          <div className="bg-orange-50 rounded-lg p-2">
+            <span className="font-semibold text-orange-600">Approved</span>
+            <br />→ needs /confirm first
+          </div>
           <div className="bg-blue-50 rounded-lg p-2">
             <span className="font-semibold text-blue-600">Confirmed</span>
             <br />→ marks BIB Collected

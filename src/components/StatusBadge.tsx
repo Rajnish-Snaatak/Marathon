@@ -2,6 +2,7 @@ import type { ParticipantStatus } from '@/lib/types'
 
 const STYLES: Record<ParticipantStatus, string> = {
   registered:    'bg-gray-100 text-gray-700',
+  approved:      'bg-orange-100 text-orange-700',
   confirmed:     'bg-blue-100 text-blue-700',
   bib_collected: 'bg-yellow-100 text-yellow-800',
   certified:     'bg-green-100 text-green-700',
@@ -9,6 +10,7 @@ const STYLES: Record<ParticipantStatus, string> = {
 
 const LABELS: Record<ParticipantStatus, string> = {
   registered:    'Registered',
+  approved:      'Approved',
   confirmed:     'Confirmed',
   bib_collected: 'BIB Collected',
   certified:     'Certified ✓',

@@ -145,7 +145,13 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Already approved?{' '}
+          <a href="/confirm" className="text-indigo-500 hover:underline">
+            Confirm your spot →
+          </a>
+        </p>
+        <p className="text-center text-xs text-gray-400 mt-2">
           Admin?{' '}
           <a href="/admin/login" className="text-indigo-500 hover:underline">
             Sign in here

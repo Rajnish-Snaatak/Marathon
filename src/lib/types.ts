@@ -1,5 +1,6 @@
 export type ParticipantStatus =
   | 'registered'
+  | 'approved'
   | 'confirmed'
   | 'bib_collected'
   | 'certified'
@@ -14,5 +15,7 @@ export interface Participant {
   tshirt_size: string | null
   status: ParticipantStatus
   bib_number: number | null
+  approved_at: string | null
+  confirmed_at: string | null
   certified_at: string | null
 }
