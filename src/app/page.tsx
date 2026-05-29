@@ -43,7 +43,7 @@ const DISTANCES = [
 const FAQS = [
   {
     q: 'When does registration close?',
-    a: 'Registration closes on March 25, 2026 or when capacity is reached — whichever comes first. Register early to secure your spot.',
+    a: 'Registration closes on May 31, 2026 or when capacity is reached — whichever comes first. Register early to secure your spot.',
   },
   {
     q: 'What is included in the entry fee?',
@@ -51,7 +51,7 @@ const FAQS = [
   },
   {
     q: 'Can I transfer or cancel my registration?',
-    a: 'Transfers to another participant are allowed up to March 20, 2026. Registrations are non-refundable.',
+    a: 'Transfers to another participant are allowed up to May 25, 2026. Registrations are non-refundable.',
   },
   {
     q: 'What should I bring on race day?',
