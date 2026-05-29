@@ -287,19 +287,15 @@ export default function RegisterPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
             <div className="flex gap-2">
-              <select
-                data-testid="register-isd-select"
+              <input
+                data-testid="register-isd-input"
+                type="text"
                 name="phone_isd"
                 value={form.phone_isd}
                 onChange={handleChange}
-                className="w-36 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              >
-                {ISD_CODES.map(({ code, country }) => (
-                  <option key={code + country} value={code}>
-                    {code}
-                  </option>
-                ))}
-              </select>
+                placeholder="+91"
+                className="w-20 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
+              />
               <input
                 data-testid="register-phone-input"
                 type="tel"
