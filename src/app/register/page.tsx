@@ -296,7 +296,7 @@ export default function RegisterPage() {
               >
                 {ISD_CODES.map(({ code, country }) => (
                   <option key={code + country} value={code}>
-                    {code} {country}
+                    {code}
                   </option>
                 ))}
               </select>
