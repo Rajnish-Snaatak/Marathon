@@ -28,6 +28,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             Race Day
           </Link>
+          <Link
+            href="/admin/tasks"
+            className="text-sm text-indigo-200 hover:text-white transition-colors"
+          >
+            Tasks
+          </Link>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-indigo-300">{user.email}</span>
