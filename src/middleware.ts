@@ -23,22 +23,45 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh the session — required for SSR auth to work correctly
+  // Refresh session — required for SSR auth
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isLoginPage = request.nextUrl.pathname === '/admin/login'
+  const { pathname } = request.nextUrl
 
-  if (!user && !isLoginPage) {
-    return NextResponse.redirect(new URL('/admin/login', request.url))
+  // ── Admin routes ──────────────────────────────────────────────────────────
+  if (pathname.startsWith('/admin')) {
+    const isAdminLogin = pathname === '/admin/login'
+
+    if (!user && !isAdminLogin) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+    if (user && isAdminLogin) {
+      return NextResponse.redirect(new URL('/admin/participants', request.url))
+    }
   }
 
-  if (user && isLoginPage) {
-    return NextResponse.redirect(new URL('/admin/participants', request.url))
+  // ── Volunteer routes ──────────────────────────────────────────────────────
+  if (pathname.startsWith('/volunteer')) {
+    const isVolunteerLogin = pathname === '/volunteer/login'
+
+    if (!user && !isVolunteerLogin) {
+      // Unauthenticated — send to volunteer login
+      return NextResponse.redirect(new URL('/volunteer/login', request.url))
+    }
+
+    if (user && isVolunteerLogin) {
+      // Authenticated user hitting login — route by role
+      const role = (user.user_metadata as { role?: string } | null)?.role
+      if (role === 'admin') {
+        return NextResponse.redirect(new URL('/admin/participants', request.url))
+      }
+      return NextResponse.redirect(new URL('/volunteer/scan', request.url))
+    }
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/volunteer/:path*'],
 }

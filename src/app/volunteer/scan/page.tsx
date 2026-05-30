@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 type Mode = 'entry' | 'finish'
@@ -17,13 +18,28 @@ interface ScanResult {
 
 export default function VolunteerScanPage() {
   const supabase = createClient()
+  const router = useRouter()
   const raceName = process.env.NEXT_PUBLIC_RACE_NAME ?? 'City Marathon 2026'
 
+  const [userEmail, setUserEmail] = useState('')
   const [mode, setMode] = useState<Mode>('entry')
   const modeRef = useRef<Mode>('entry')
   const [manualBib, setManualBib] = useState('')
   const [processing, setProcessing] = useState(false)
   const [lastResult, setLastResult] = useState<ScanResult | null>(null)
+
+  // Fetch logged-in user's email for the header
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserEmail(user?.email ?? '')
+    })
+  }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/volunteer/login')
+    router.refresh()
+  }
 
   // Keep modeRef in sync without reinitialising the scanner
   useEffect(() => { modeRef.current = mode }, [mode])
@@ -151,10 +167,21 @@ export default function VolunteerScanPage() {
       <div className="max-w-lg mx-auto">
 
         {/* Header */}
-        <div className="text-center py-6">
-          <div className="text-4xl mb-2">📷</div>
-          <h1 className="text-2xl font-bold text-gray-800">{raceName}</h1>
-          <p className="text-gray-500 text-sm mt-1">Volunteer Scanner</p>
+        <div className="flex items-center justify-between py-4 mb-2">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">📷 Volunteer Scanner</h1>
+            <p className="text-xs text-gray-400 mt-0.5">{raceName}</p>
+          </div>
+          <div className="text-right">
+            {userEmail && <p className="text-xs text-gray-400 mb-1">{userEmail}</p>}
+            <button
+              data-testid="volunteer-signout"
+              onClick={handleSignOut}
+              className="text-xs text-indigo-500 hover:text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Mode toggle */}
