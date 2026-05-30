@@ -147,10 +147,24 @@ stateDiagram-v2
 
 ### 🛡️ Admin Dashboard (`/admin/participants`)
 - Secure login via Supabase Auth (email + password)
+- **Status summary cards** — live counts for Registered / Approved / Confirmed /
+  BIB Collected / Certified
 - Searchable/filterable participant table (name, email, BIB)
 - **Approve + BIB** — assigns next BIB number, sets status to `approved`
+- **CSV bulk finish-times** — upload a `bib,finish_time` CSV; matching rows are
+  set to `certified` with their finish time; reports successes + per-row failures
 - Colour-coded status badges for all 5 stages
 - Protected by Edge Middleware + Server Component double-check
+
+### 📣 Notification Center (`/admin/notifications`)
+- Compose a **subject + body** and pick an **audience**: all participants or
+  filtered by status
+- **Live recipient count** for the selected filter
+- **Email broadcast** via Resend (`POST /api/broadcast`, server-side) — reports
+  how many sent and any per-recipient failures; graceful if email is unconfigured
+- **WhatsApp channel** — copy the group invite link + a `wa.me` click-to-chat
+  link pre-filled with the message (full WhatsApp Business API is out of scope)
+- Protected by existing admin auth
 
 ### 🏁 Race Day Station (`/admin/race-day`)
 - Dedicated page optimised for fast check-in
@@ -263,17 +277,22 @@ marathon-app/
 │   │   │       │   └── page.tsx              # 📋 Participant management table
 │   │   │       ├── race-day/
 │   │   │       │   └── page.tsx              # 🏁 Race day BIB station
-│   │   │       └── tasks/
-│   │   │           └── page.tsx              # 🗂️ Organizer task board
+│   │   │       ├── tasks/
+│   │   │       │   └── page.tsx              # 🗂️ Organizer task board
+│   │   │       └── notifications/
+│   │   │           └── page.tsx              # 📣 Notification Center (broadcast)
 │   │   │
 │   │   └── api/
 │   │       ├── auth/callback/
 │   │       │   └── route.ts                  # Supabase auth callback
-│   │       └── notify/
-│   │           └── route.ts                  # 📧 Resend email sender (server-only)
+│   │       ├── notify/
+│   │       │   └── route.ts                  # 📧 Stage email sender (server-only)
+│   │       └── broadcast/
+│   │           └── route.ts                  # 📣 Broadcast email sender (server-only)
 │   │
 │   ├── components/
 │   │   ├── ParticipantTable.tsx              # Filterable table + approve action
+│   │   ├── FinishTimeUpload.tsx              # CSV bulk finish-time upload
 │   │   ├── BibScanner.tsx                    # BIB input → 5-stage transitions
 │   │   ├── Certificate.tsx                   # Certificate render + PNG download
 │   │   ├── StatusBadge.tsx                   # Colour-coded status pill (5 states)
@@ -324,6 +343,7 @@ status          text            registered | approved | confirmed |
 bib_number      integer         Unique BIB (null until admin assigns)
 distance        text            5K | 10K | Half Marathon | Full Marathon
 role            text            Participant role (optional)
+finish_time     text            Race finish time (set via per-row / CSV upload)
 approved_at     timestamptz     Set when admin approves
 confirmed_at    timestamptz     Set when participant self-confirms
 certified_at    timestamptz     Set when certified at finish line
@@ -434,10 +454,18 @@ supabase/migrations/003_volunteer_rls.sql
 
 # Migration 4 — RLS for the tasks board
 supabase/migrations/004_tasks_rls.sql
+
+# Migration 5 — enable Realtime on participants (live /status page)
+supabase/migrations/005_enable_realtime.sql
+
+# Migration 6 — finish_time column (CSV bulk upload / race results)
+supabase/migrations/006_finish_time.sql
 ```
 
 > Note: the `distance`, `role`, and `tasks` columns/table may already exist in
 > your project; the RLS migrations are the ones that matter for the new features.
+> Migration 5 is optional (the /status page also polls every 5s); migration 6 is
+> required for the CSV finish-time upload.
 
 ### 5. Create users
 
