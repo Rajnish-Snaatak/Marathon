@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { QRCodeSVG } from 'qrcode.react'
 import Certificate from '@/components/Certificate'
 import type { Participant, ParticipantStatus } from '@/lib/types'
 
@@ -240,6 +241,20 @@ export default function StatusPage() {
                 )}
               </div>
             </div>
+
+            {/* QR Code — visible once approved */}
+            {participant.bib_number && STATUS_INDEX[participant.status] >= 1 && (
+              <div className="px-6 pb-5 border-t border-gray-100 pt-5 flex flex-col items-center gap-2">
+                <QRCodeSVG
+                  value={String(participant.bib_number)}
+                  size={148}
+                  data-testid="participant-qr-code"
+                />
+                <p className="text-xs text-gray-400 text-center">
+                  Show to volunteers at entry & finish line
+                </p>
+              </div>
+            )}
 
             {/* Stage tracker */}
             <div className="px-4 border-t border-gray-100 pt-2">
