@@ -34,6 +34,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             Tasks
           </Link>
+          <Link
+            href="/admin/notifications"
+            className="text-sm text-indigo-200 hover:text-white transition-colors"
+          >
+            Notifications
+          </Link>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-indigo-300">{user.email}</span>
