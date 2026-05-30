@@ -187,9 +187,24 @@ stateDiagram-v2
 - Fallback to `window.print()` if canvas fails
 - Content: participant name, BIB number, race name, completion date
 
-### 🔔 Notifications
-- **react-hot-toast** for all status changes and errors
-- No email/SMS dependencies — works fully offline
+### 🔔 Stage-Based Notifications
+Every status change triggers the matching notification (PRD status table):
+
+| Status | Notification |
+|---|---|
+| `registered` | Welcome email |
+| `approved` | Email with the assigned BIB number |
+| `confirmed` | WhatsApp group invite shown prominently on `/status` (confirmed or later) |
+| `bib_collected` | BIB-collection confirmation email |
+| `certified` | Email linking to the certificate / status page |
+
+- **Emails via [Resend](https://resend.com)** — sent from the server route
+  `POST /api/notify` so `RESEND_API_KEY` never reaches the client
+- **WhatsApp invite** — a "Join the WhatsApp Group" button using
+  `NEXT_PUBLIC_WHATSAPP_INVITE_URL`
+- **In-app toasts** (react-hot-toast) on every action, always
+- **Fails gracefully** — missing key, no recipient, or a Resend error never
+  blocks the status update; the toast still shows and the flow continues
 
 ---
 
@@ -207,6 +222,7 @@ stateDiagram-v2
 | Certificate | html2canvas | Client-side PNG export |
 | QR generation | qrcode.react | BIB QR code on status page |
 | QR scanning | html5-qrcode | Camera-based volunteer scanner |
+| Email | Resend API | Stage-based participant emails (server-side) |
 | Deployment | Vercel | Zero-config production deploy |
 
 ---
@@ -250,8 +266,11 @@ marathon-app/
 │   │   │       └── tasks/
 │   │   │           └── page.tsx              # 🗂️ Organizer task board
 │   │   │
-│   │   └── api/auth/callback/
-│   │       └── route.ts                      # Supabase auth callback
+│   │   └── api/
+│   │       ├── auth/callback/
+│   │       │   └── route.ts                  # Supabase auth callback
+│   │       └── notify/
+│   │           └── route.ts                  # 📧 Resend email sender (server-only)
 │   │
 │   ├── components/
 │   │   ├── ParticipantTable.tsx              # Filterable table + approve action
@@ -265,6 +284,7 @@ marathon-app/
 │   │   ├── supabase/
 │   │   │   ├── client.ts                     # Browser Supabase client
 │   │   │   └── server.ts                     # Server Supabase client (SSR)
+│   │   ├── notify.ts                         # Fire-and-forget email trigger
 │   │   └── types.ts                          # Participant, Task + shared types
 │   │
 │   └── middleware.ts                         # Edge auth guard for /admin/* + /volunteer/*
@@ -373,12 +393,30 @@ cp .env.local.example .env.local
 Edit `.env.local`:
 
 ```env
+# Required — Supabase (Settings → API)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_RACE_NAME=City Marathon 2026
+
+# Optional — Notifications
+RESEND_API_KEY=re_your_resend_key            # email sending (server-only)
+RESEND_FROM=noreply@your-verified-domain.com # verified sender (see note below)
+NEXT_PUBLIC_WHATSAPP_INVITE_URL=https://chat.whatsapp.com/your-invite
 ```
 
-> Find these in your Supabase project: **Settings → API**
+> Supabase keys: **Settings → API**. The notification vars are optional — if
+> omitted, the app skips emails / hides the WhatsApp button and works fine.
+
+#### Email notifications (Resend)
+
+1. Create an account at [resend.com](https://resend.com) and grab an **API key** → `RESEND_API_KEY`
+2. **Verify a domain** in Resend → **Domains** (add the DNS records it shows), then set
+   `RESEND_FROM=noreply@your-domain.com`
+3. ⚠️ Without a verified domain the app falls back to Resend's test sender
+   `onboarding@resend.dev`, which **only delivers to your own Resend account email** —
+   fine for a quick test, but real participant emails need a verified domain.
+4. On Vercel, add `RESEND_API_KEY`, `RESEND_FROM`, and `NEXT_PUBLIC_WHATSAPP_INVITE_URL`
+   under **Project → Settings → Environment Variables**, then redeploy.
 
 ### 4. Run database migrations
 
