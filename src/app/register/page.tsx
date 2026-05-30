@@ -176,6 +176,11 @@ export default function RegisterPage() {
           <a href="/admin/login" className="text-indigo-500 hover:underline">
             Sign in here
           </a>
+          {' · '}
+          Volunteer?{' '}
+          <a href="/volunteer/login" className="text-indigo-500 hover:underline">
+            Sign in here
+          </a>
         </p>
       </div>
     </div>

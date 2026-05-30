@@ -254,9 +254,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 flex flex-wrap items-center justify-between gap-3">
           <span>© 2026 {RACE_NAME}. All rights reserved.</span>
           <div className="flex gap-6">
-            <Link href="/register" className="hover:text-white transition-colors">Register</Link>
-            <Link href="/status"   className="hover:text-white transition-colors">My Status</Link>
-            <Link href="/admin/login" className="hover:text-white transition-colors">Admin</Link>
+            <Link href="/register"        className="hover:text-white transition-colors">Register</Link>
+            <Link href="/status"          className="hover:text-white transition-colors">My Status</Link>
+            <Link href="/volunteer/login" className="hover:text-white transition-colors">Volunteer</Link>
+            <Link href="/admin/login"     className="hover:text-white transition-colors">Admin</Link>
           </div>
         </div>
       </footer>
