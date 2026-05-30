@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { notify } from '@/lib/notify'
 import toast from 'react-hot-toast'
 import StatusBadge from './StatusBadge'
 import type { Participant } from '@/lib/types'
@@ -41,6 +42,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
         toast.error('Failed to assign BIB: ' + error.message)
       } else {
         toast.success(`BIB #${newBib} assigned — ${participant.name} approved. Awaiting participant confirmation.`)
+        notify(participant.id, 'approved')
         router.refresh()
       }
     } finally {

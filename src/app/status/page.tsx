@@ -110,6 +110,8 @@ function StageTracker({ status }: { status: ParticipantStatus }) {
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
+const WHATSAPP_URL = process.env.NEXT_PUBLIC_WHATSAPP_INVITE_URL
+
 export default function StatusPage() {
   const supabase = createClient()
   const raceName = process.env.NEXT_PUBLIC_RACE_NAME ?? 'City Marathon 2026'
@@ -263,6 +265,19 @@ export default function StatusPage() {
 
             {/* Actions */}
             <div className="px-6 pb-6 space-y-3">
+
+              {/* WhatsApp group invite — confirmed or later */}
+              {STATUS_INDEX[participant.status] >= 2 && WHATSAPP_URL && (
+                <a
+                  data-testid="whatsapp-invite"
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-colors"
+                >
+                  <span className="text-lg">💬</span> Join the WhatsApp Group
+                </a>
+              )}
 
               {/* Confirm button — only when approved */}
               {participant.status === 'approved' && (

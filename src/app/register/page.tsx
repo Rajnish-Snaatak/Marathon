@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { notify } from '@/lib/notify'
 import toast from 'react-hot-toast'
 
 const TSHIRT_SIZES = ['S', 'M', 'L', 'XL'] as const
@@ -22,7 +23,7 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { error } = await supabase.from('participants').insert({
+      const { data, error } = await supabase.from('participants').insert({
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         phone: form.phone.trim() || null,
@@ -30,7 +31,7 @@ export default function RegisterPage() {
         tshirt_size: form.tshirt_size,
         distance: form.distance,
         status: 'registered',
-      })
+      }).select('id').single()
 
       if (error) {
         if (error.code === '23505') {
@@ -41,6 +42,7 @@ export default function RegisterPage() {
         }
       } else {
         toast.success('Registered! Check in on race day with your BIB number.')
+        if (data?.id) notify(data.id, 'registered')
         setForm(EMPTY_FORM)
       }
     } finally {

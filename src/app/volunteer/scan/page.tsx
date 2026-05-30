@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { notify } from '@/lib/notify'
 import toast from 'react-hot-toast'
 
 type Mode = 'entry' | 'finish'
@@ -87,6 +88,7 @@ export default function VolunteerScanPage() {
           .update({ status: 'bib_collected' })
           .eq('id', p.id)
         if (e) { toast.error('Update failed: ' + e.message); return }
+        notify(p.id, 'bib_collected')
         const msg = `BIB #${bib} — ${p.name} checked in!`
         toast.success('✅ ' + msg)
         setLastResult({ bib, name: p.name, from: 'confirmed', to: 'bib_collected', ok: true, message: msg })
@@ -109,6 +111,7 @@ export default function VolunteerScanPage() {
           .update({ status: 'certified', certified_at: new Date().toISOString() })
           .eq('id', p.id)
         if (e) { toast.error('Update failed: ' + e.message); return }
+        notify(p.id, 'certified')
         const msg = `BIB #${bib} — ${p.name} certified!`
         toast.success('🏅 ' + msg)
         setLastResult({ bib, name: p.name, from: 'bib_collected', to: 'certified', ok: true, message: msg })

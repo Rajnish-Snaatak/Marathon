@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { notify } from '@/lib/notify'
 import toast from 'react-hot-toast'
 import Certificate from './Certificate'
 import type { Participant } from '@/lib/types'
@@ -60,6 +61,7 @@ export default function BibScanner() {
           toast.error('Update failed: ' + updateError.message)
         } else {
           toast.success(`✅ BIB #${bibNum} collected — ${participant.name}`)
+          notify(participant.id, 'bib_collected')
         }
         resetInput()
 
@@ -75,6 +77,7 @@ export default function BibScanner() {
           resetInput()
         } else {
           toast.success(`🏅 ${participant.name} is certified!`)
+          notify(participant.id, 'certified')
           setCertParticipant({ ...participant, status: 'certified', certified_at: certifiedAt } as Participant)
           resetInput()
         }
