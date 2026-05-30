@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
@@ -150,6 +150,61 @@ export default function StatusPage() {
       setLoading(false)
     }
   }
+
+  // ── Live updates: Realtime subscription + polling fallback ──────────────────
+  // Re-runs only when the looked-up participant's id changes (not on every
+  // status update), so the channel isn't needlessly torn down and rebuilt.
+  const participantId = participant?.id
+
+  useEffect(() => {
+    if (!participantId) return
+
+    const applyRow = (row: Participant) =>
+      setParticipant(prev => {
+        // Skip needless re-renders when nothing relevant changed
+        if (
+          prev &&
+          prev.status === row.status &&
+          prev.bib_number === row.bib_number &&
+          prev.certified_at === row.certified_at
+        ) {
+          return prev
+        }
+        return row
+      })
+
+    // 1) Supabase Realtime — postgres UPDATEs on this participant's row
+    const channel = supabase
+      .channel(`participant-${participantId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'participants',
+          filter: `id=eq.${participantId}`,
+        },
+        payload => applyRow(payload.new as Participant)
+      )
+      .subscribe()
+
+    // 2) Safety-net poll every 5s in case no realtime event arrives
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('id', participantId)
+        .single()
+      if (data) applyRow(data as Participant)
+    }, 5000)
+
+    // Cleanup on unmount / id change — avoids leaks
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(poll)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantId])
 
   // ── Self-confirm ──────────────────────────────────────────────────────────
 
