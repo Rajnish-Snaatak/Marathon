@@ -140,6 +140,7 @@ stateDiagram-v2
 - **Lookup by email or BIB number** — no login required
 - **5-stage visual progress tracker** — desktop horizontal + mobile vertical
 - BIB number shown once participant reaches `approved`
+- **Scannable QR code** of the BIB (qrcode.react) — shown once `approved`, for volunteers to scan
 - **"Confirm My Participation"** button — self-service `approved → confirmed` transition
 - **Certificate + download** shown inline when `certified` (reuses Certificate component)
 - Hints for pending/confirmed states
@@ -159,6 +160,25 @@ stateDiagram-v2
   - `bib_collected` → marks **Certified** + shows certificate
   - `approved` → error: "ask participant to confirm via /status"
 - Error toasts for unknown BIBs or wrong status
+
+### 📷 Volunteer QR Scanner (`/volunteer/scan`)
+- **Separate volunteer login** (`/volunteer/login`) via Supabase Auth
+- Role-based routing — `user_metadata.role` decides volunteer vs admin landing
+- **Live camera QR scanning** (html5-qrcode) reads a participant's BIB QR code
+- **Entry / Finish mode toggle**:
+  - Entry → `confirmed → bib_collected`
+  - Finish → `bib_collected → certified`
+- **Manual BIB input fallback** when the camera is unavailable
+- Debounced scans + clear success/error toasts and a last-result card
+- Protected by Edge Middleware (redirects to `/volunteer/login` if no session)
+
+### 🗂️ Organizer Task Board (`/admin/tasks`)
+- **Kanban board** — To Do / In Progress / Done columns
+- **Category filter** — Sponsors · T-Shirt · BIB · Volunteers · Logistics
+- Each card shows title, category badge, assignee, deadline (overdue in red)
+- **Interactive checklist** per task — checkboxes persist to the `jsonb` column
+- Create / edit tasks via modal; **move between columns** with ← / → buttons
+- Protected by existing admin auth + reachable from the admin nav
 
 ### 🏅 Certificate Generation
 - Fully **client-side** — no server, no PDF library
@@ -185,6 +205,8 @@ stateDiagram-v2
 | SSR Auth | @supabase/ssr | Cookie-based auth for Next.js |
 | Toasts | react-hot-toast | In-app notifications |
 | Certificate | html2canvas | Client-side PNG export |
+| QR generation | qrcode.react | BIB QR code on status page |
+| QR scanning | html5-qrcode | Camera-based volunteer scanner |
 | Deployment | Vercel | Zero-config production deploy |
 
 ---
@@ -209,6 +231,12 @@ marathon-app/
 │   │   ├── confirm/
 │   │   │   └── page.tsx                      # → redirects to /status
 │   │   │
+│   │   ├── volunteer/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx                  # 🔐 Volunteer login (role-routed)
+│   │   │   └── scan/
+│   │   │       └── page.tsx                  # 📷 Camera QR scanner + manual fallback
+│   │   │
 │   │   ├── admin/
 │   │   │   ├── login/
 │   │   │   │   └── page.tsx                  # 🔐 Admin login
@@ -217,8 +245,10 @@ marathon-app/
 │   │   │       ├── page.tsx                  # → redirects to /participants
 │   │   │       ├── participants/
 │   │   │       │   └── page.tsx              # 📋 Participant management table
-│   │   │       └── race-day/
-│   │   │           └── page.tsx              # 🏁 Race day BIB station
+│   │   │       ├── race-day/
+│   │   │       │   └── page.tsx              # 🏁 Race day BIB station
+│   │   │       └── tasks/
+│   │   │           └── page.tsx              # 🗂️ Organizer task board
 │   │   │
 │   │   └── api/auth/callback/
 │   │       └── route.ts                      # Supabase auth callback
@@ -228,20 +258,23 @@ marathon-app/
 │   │   ├── BibScanner.tsx                    # BIB input → 5-stage transitions
 │   │   ├── Certificate.tsx                   # Certificate render + PNG download
 │   │   ├── StatusBadge.tsx                   # Colour-coded status pill (5 states)
+│   │   ├── TaskBoard.tsx                     # Kanban board + task editor modal
 │   │   └── SignOutButton.tsx                 # Client-side sign out
 │   │
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts                     # Browser Supabase client
 │   │   │   └── server.ts                     # Server Supabase client (SSR)
-│   │   └── types.ts                          # Participant + ParticipantStatus types
+│   │   └── types.ts                          # Participant, Task + shared types
 │   │
-│   └── middleware.ts                         # Edge auth guard for /admin/*
+│   └── middleware.ts                         # Edge auth guard for /admin/* + /volunteer/*
 │
 ├── supabase/
 │   └── migrations/
 │       ├── 001_initial_schema.sql            # participants table + base RLS
-│       └── 002_status_page_rls.sql           # anon SELECT + self-confirm UPDATE
+│       ├── 002_status_page_rls.sql           # anon SELECT + self-confirm UPDATE
+│       ├── 003_volunteer_rls.sql             # volunteer entry/finish scan UPDATEs
+│       └── 004_tasks_rls.sql                 # tasks table — admin full access
 │
 ├── test-demo-flow.mjs                        # E2E demo flow test script
 ├── .env.local.example                        # Environment variable template
@@ -269,23 +302,43 @@ tshirt_size     text            S / M / L / XL
 status          text            registered | approved | confirmed |
                                 bib_collected | certified
 bib_number      integer         Unique BIB (null until admin assigns)
+distance        text            5K | 10K | Half Marathon | Full Marathon
+role            text            Participant role (optional)
 approved_at     timestamptz     Set when admin approves
 confirmed_at    timestamptz     Set when participant self-confirms
 certified_at    timestamptz     Set when certified at finish line
 ```
 
+### `tasks` table (organizer board)
+
+```sql
+Column          Type            Description
+─────────────── ─────────────── ──────────────────────────────────────────────
+id              uuid            Primary key (auto-generated)
+title           text            Task title (required)
+category        text            Sponsors | T-Shirt | BIB | Volunteers | Logistics
+assignee        text            Person responsible (optional)
+deadline        date            Due date (optional)
+checklist       jsonb           Array of { text, done } items
+status          text            todo | in_progress | done
+```
+
 ### Row Level Security (RLS)
 
 ```
+participants:
 ┌───────────────────────────────────────────────────────────┐
 │  Role: anon (public)                                       │
 │  INSERT  — status='registered', bib_number IS NULL         │
 │  SELECT  — all rows (for status page lookup)               │
-│  UPDATE  — only approved→confirmed transition              │
+│  UPDATE  — approved→confirmed (self-confirm)               │
+│          — confirmed→bib_collected (volunteer entry scan)  │
+│          — bib_collected→certified (volunteer finish scan) │
 └───────────────────────────────────────────────────────────┘
 
+participants + tasks:
 ┌───────────────────────────────────────────────────────────┐
-│  Role: authenticated (admin)                               │
+│  Role: authenticated (admin / volunteer)                   │
 │  ALL operations — full unrestricted access                 │
 └───────────────────────────────────────────────────────────┘
 ```
@@ -329,7 +382,7 @@ NEXT_PUBLIC_RACE_NAME=City Marathon 2026
 
 ### 4. Run database migrations
 
-In **Supabase Dashboard → SQL Editor**, run both migrations in order:
+In **Supabase Dashboard → SQL Editor**, run all migrations in order:
 
 ```bash
 # Migration 1 — core schema
@@ -337,14 +390,25 @@ supabase/migrations/001_initial_schema.sql
 
 # Migration 2 — RLS for public status page
 supabase/migrations/002_status_page_rls.sql
+
+# Migration 3 — RLS for volunteer entry/finish scans
+supabase/migrations/003_volunteer_rls.sql
+
+# Migration 4 — RLS for the tasks board
+supabase/migrations/004_tasks_rls.sql
 ```
 
-### 5. Create an admin user
+> Note: the `distance`, `role`, and `tasks` columns/table may already exist in
+> your project; the RLS migrations are the ones that matter for the new features.
 
-In **Supabase Dashboard → Authentication → Users → Add User**:
-- Email: your admin email
-- Password: strong password
-- ✅ Auto Confirm User
+### 5. Create users
+
+**Admin** — Supabase Dashboard → Authentication → Users → Add User:
+- Email + password, ✅ Auto Confirm User
+
+**Volunteer** — same as above, then set the user's metadata:
+- In the user's **Raw User Meta Data**, add: `{ "role": "volunteer" }`
+- Volunteers land on `/volunteer/scan`; users without that role go to `/admin`
 
 ### 6. Start the development server
 
